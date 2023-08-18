@@ -5,7 +5,7 @@ const myModule = (() => {
   const restart = document.querySelector('#restart');
   const cellArray = Array.from([...cells]);
   let gameEnded = false;
-
+  console.log(cellArray);
   const Gameboard = {
     render: function () {
       //CONTADOR DE PASOS DESDE QUE EMPIEZA LA PARTIDA
@@ -16,33 +16,34 @@ const myModule = (() => {
 
       //HACEMOS UN FOREACH AL NODO DE CELDAS
       cellArray.forEach((item) => {
-        item.addEventListener('click', function handleCellClick(event) {
-          // Renamed function
+        item.addEventListener('click', function turn() {
+          // SI LA CONDICION FLAG CAMBIA A "TRUE" SALIMOS DE LA FUNCIÓN
           if (gameEnded) return;
-
-          // Determine the player's turn
+          // EL TURNO SE DETERMINA CUANDO HACEMOS MOD Al COUNT (PAR TURNO DEL X) (IMPAR TURNO DEL O)
           if (count % 2 == 0) {
-            event.target.textContent = 'X';
+            this.textContent = 'X';
             Gameboard.setTurnStatus('PLAYER O TURN');
           } else {
-            event.target.textContent = 'O';
+            this.textContent = 'O';
             Gameboard.setTurnStatus('PLAYER X TURN');
           }
 
-          // Remove the event listener for the clicked cell
-          item.removeEventListener('click', handleCellClick);
+          // REMOVEMOS EL EVENTO PARA NO RE-ESCRIBIR UNA CELDA YA ELEGIDA
+          item.removeEventListener('click', turn);
+          //UTILIZAMOS UN CONDICIONAL QUE EVALUA SI EL METODO GETWINNER SE CUMPLE, DE SER ASI
+          //EL MENSAJE DE TURNO LO ELIMINAMOS
+          // EL FLAG GLOBAL SE VEULVE VERDADERO
+          // Y HACEMOS RENDER A EL MENSAJE DE GANADOR
 
-          // Check for a winner or draw
           if (Gameboard.getWinner()) {
             Gameboard.setTurnStatus('');
             gameEnded = true;
-            winner.textContent = `THE WINNER IS ${event.target.textContent}`;
-          } else if (count === 8) {
-            gameEnded = true;
+            winner.textContent = `THE WINNER IS ${this.textContent}`;
+          } else if (count == 8) {
+            console.log(count);
             Gameboard.setTurnStatus('');
             winner.textContent = `THERE IS A DRAW`;
           }
-
           count++;
           Gameboard.showPlayerTurn();
         });
@@ -55,7 +56,7 @@ const myModule = (() => {
     },
 
     getWinner: function () {
-      let winnerComb = [
+      const winnerComb = [
         [0, 1, 2],
         [3, 4, 5],
         [6, 7, 8],
@@ -66,17 +67,13 @@ const myModule = (() => {
         [2, 4, 6],
       ];
 
-      for (const comb of winnerComb) {
-        if (
-          cellArray[comb[0]].textContent === cellArray[comb[1]].textContent &&
-          cellArray[comb[1]].textContent === cellArray[comb[2]].textContent &&
-          cellArray[comb[0]].textContent !== ''
-        ) {
-          return true;
-        }
-      }
-
-      return false;
+      return winnerComb.some(
+        (comb) =>
+          comb.every(
+            (index) =>
+              cellArray[index].textContent === cellArray[comb[0]].textContent
+          ) && cellArray[comb[0]].textContent !== ''
+      );
     },
 
     // LA CONDICIÓN INICIAL DEL MENSAJE DEL TURNO
@@ -95,16 +92,16 @@ const myModule = (() => {
   function handlerOnClickReset() {
     cellArray.forEach((item) => {
       item.innerHTML = '';
-      item.removeEventListener('click', turn);
     });
     winner.innerHTML = '';
     Gameboard.setTurnStatus('PLAYER X TURN');
     gameEnded = false;
+    count = 0;
     Gameboard.render();
   }
-
-  restart.addEventListener('click', handlerOnClickReset);
   Gameboard.render();
+  restart.addEventListener('click', handlerOnClickReset);
+
   // Gameboard.render();
   return { Gameboard, cellContainer: cells, cellArray };
 })();
