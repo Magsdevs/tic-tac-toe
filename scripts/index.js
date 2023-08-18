@@ -16,29 +16,29 @@ const myModule = (() => {
 
       //HACEMOS UN FOREACH AL NODO DE CELDAS
       cellArray.forEach((item) => {
-        item.addEventListener('click', function turn() {
-          // SI LA CONDICION FLAG CAMBIA A "TRUE" SALIMOS DE LA FUNCIÓN
+        item.addEventListener('click', function handleCellClick(event) {
+          // Renamed function
           if (gameEnded) return;
-          // EL TURNO SE DETERMINA CUANDO HACEMOS MOD Al COUNT (PAR TURNO DEL X) (IMPAR TURNO DEL O)
+
+          // Determine the player's turn
           if (count % 2 == 0) {
-            this.textContent = 'X';
+            event.target.textContent = 'X';
             Gameboard.setTurnStatus('PLAYER O TURN');
           } else {
-            this.textContent = 'O';
+            event.target.textContent = 'O';
             Gameboard.setTurnStatus('PLAYER X TURN');
           }
 
-          // REMOVEMOS EL EVENTO PARA NO RE-ESCRIBIR UNA CELDA YA ELEGIDA
-          item.removeEventListener('click', turn);
-          //UTILIZAMOS UN CONDICIONAL QUE EVALUA SI EL METODO GETWINNER SE CUMPLE, DE SER ASI
-          //EL MENSAJE DE TURNO LO ELIMINAMOS
-          // EL FLAG GLOBAL SE VEULVE VERDADERO
-          // Y HACEMOS RENDER A EL MENSAJE DE GANADOR
+          // Remove the event listener for the clicked cell
+          item.removeEventListener('click', handleCellClick);
+
+          // Check for a winner or draw
           if (Gameboard.getWinner()) {
             Gameboard.setTurnStatus('');
             gameEnded = true;
-            winner.textContent = `THE WINNER IS ${this.textContent}`;
+            winner.textContent = `THE WINNER IS ${event.target.textContent}`;
           } else if (count === 8) {
+            gameEnded = true;
             Gameboard.setTurnStatus('');
             winner.textContent = `THERE IS A DRAW`;
           }
@@ -92,18 +92,19 @@ const myModule = (() => {
     },
   };
 
-  Gameboard.render();
-
   function handlerOnClickReset() {
     cellArray.forEach((item) => {
       item.innerHTML = '';
+      item.removeEventListener('click', turn);
     });
     winner.innerHTML = '';
-    turn.innerHTML = 'PLAYER X TURN';
+    Gameboard.setTurnStatus('PLAYER X TURN');
+    gameEnded = false;
+    Gameboard.render();
   }
 
   restart.addEventListener('click', handlerOnClickReset);
-
+  Gameboard.render();
   // Gameboard.render();
   return { Gameboard, cellContainer: cells, cellArray };
 })();
